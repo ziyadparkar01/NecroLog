@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NecroLog: Ambient Telemetry & Process Archaeology</title>
+  <meta name="description" content="Executive systems monitoring console treating orphan routines, lingering PIDs, and memory overhead as the ghosts in the machine.">
+  <meta property="og:title" content="NecroLog: Ambient Telemetry & Process Archaeology">
+  <meta property="og:description" content="Executive systems monitoring console treating orphan routines, lingering PIDs, and memory overhead as the ghosts in the machine.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Typography: Plus Jakarta Sans for UI prose & JetBrains Mono for telemetry figures -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="necro-app">
+  <!-- Top Navigation Bar: 3-Zone Contract -->
+  <header class="top-nav">
+    <div class="brand-zone">
+      <a href="#" class="brand-wordmark" id="brand-refresh-btn">NecroLog</a>
+      <span class="brand-divider">/</span>
+      <span class="brand-context">Process Archaeology</span>
+    </div>
+
+    <nav class="nav-links-zone">
+      <a href="#vitals" class="nav-item active" data-target="vitals">Telemetry Matrix</a>
+      <a href="#graveyard" class="nav-item" data-target="graveyard">Process Graveyard</a>
+      <a href="#dossier" class="nav-item" data-target="dossier">Archaeological Dossier</a>
+      <a href="#airgap" class="nav-item" data-target="airgap">Air-Gap Verification</a>
+    </nav>
+
+    <div class="top-actions-zone">
+      <div class="telemetry-clock">
+        <span class="clock-label">UTC</span>
+        <span class="clock-val" id="utc-clock">00:00:00</span>
+      </div>
+      <div class="status-indicator-group">
+        <span class="status-indicator-light" id="status-light"></span>
+        <span class="status-indicator-text" id="status-text">Connecting...</span>
+      </div>
+      <button class="primary-action-btn" id="execute-necrology-btn" type="button">
+        <span class="btn-spinner" id="btn-spinner" aria-hidden="true"></span>
+        <span class="btn-text" id="btn-text">Execute System Necrology</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Secondary Context Bar: Host Fingerprint & Polling Governance -->
+  <aside class="context-bar">
+    <div class="context-item">
+      <span class="meta-label">Node</span>
+      <span class="meta-value" id="node-name">locahost.telemetry</span>
+    </div>
+    <span class="context-sep">·</span>
+    <div class="context-item">
+      <span class="meta-label">Architecture</span>
+      <span class="meta-value" id="node-arch">x86_64 / Linux</span>
+    </div>
+    <span class="context-sep">·</span>
+    <div class="context-item">
+      <span class="meta-label">Telemetry Source</span>
+      <span class="meta-value" id="telemetry-source">psutil_live</span>
+    </div>
+    <span class="context-sep">·</span>
+    <div class="context-item">
+      <span class="meta-label">Local Model</span>
+      <span class="meta-value" id="model-badge">llama3.2:3b</span>
+    </div>
+    <span class="context-sep">·</span>
+    <div class="context-item">
+      <span class="meta-label">Inference Socket</span>
+      <span class="meta-value status-socket" id="ollama-status">Checking Ollama...</span>
+    </div>
+
+    <div class="context-controls">
+      <label for="polling-interval" class="control-label">Interval</label>
+      <select id="polling-interval" class="control-select">
+        <option value="2000">2s</option>
+        <option value="3000" selected>3s</option>
+        <option value="5000">5s</option>
+        <option value="10000">10s</option>
+      </select>
+      <button id="toggle-stream-btn" class="secondary-btn" type="button">Pause Stream</button>
+      <button id="manual-poll-btn" class="secondary-btn" type="button">Poll Now</button>
+    </div>
+  </aside>
+
+  <!-- Main Viewport Workspace: Executive Split-Pane -->
+  <main class="workspace-viewport">
+    <!-- Left Pane: Real-Time Hardware Telemetry & Process Graveyard -->
+    <section class="telemetry-pane" id="vitals">
+      <!-- 4-Card Hardware Telemetry Matrix -->
+      <div class="metrics-grid">
+        <!-- CPU Card -->
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">CPU Utilization</span>
+            <span class="metric-badge" id="cpu-cores-badge">4 Cores</span>
+          </div>
+          <div class="metric-hero">
+            <span class="metric-number tabular" id="metric-cpu">0.0</span>
+            <span class="metric-unit">%</span>
+          </div>
+          <div class="metric-progress-track">
+            <div class="metric-progress-fill" id="cpu-progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="metric-footer">
+            <span class="footer-item">Load Avg: <strong class="tabular" id="cpu-load-avg">0.00, 0.00, 0.00</strong></span>
+          </div>
+        </article>
+
+        <!-- Memory Footprint Card -->
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">Resident RAM Footprint</span>
+            <span class="metric-badge" id="ram-pct-badge">0.0%</span>
+          </div>
+          <div class="metric-hero">
+            <span class="metric-number tabular" id="metric-ram-used">0.0</span>
+            <span class="metric-unit">MB</span>
+          </div>
+          <div class="metric-progress-track">
+            <div class="metric-progress-fill fill-ram" id="ram-progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="metric-footer">
+            <span class="footer-item">Capacity: <strong class="tabular" id="ram-total">0.0 MB</strong></span>
+            <span class="footer-item">Swap: <strong class="tabular" id="swap-used">0.0 MB</strong></span>
+          </div>
+        </article>
+
+        <!-- Process Load & Thread Density -->
+        <article class="metric-card">
+          <div class="metric-header">
+            <span class="metric-title">PID & Thread Load</span>
+            <span class="metric-badge" id="pid-count-badge">0 Active</span>
+          </div>
+          <div class="metric-hero">
+            <span class="metric-number tabular" id="metric-threads">0</span>
+            <span class="metric-unit">Threads</span>
+          </div>
+          <div class="metric-progress-track">
+            <div class="metric-progress-fill fill-threads" id="threads-progress-fill" style="width: 25%"></div>
+          </div>
+          <div class="metric-footer">
+            <span class="footer-item">Total PIDs: <strong class="tabular" id="metric-total-pids">0</strong></span>
+            <span class="footer-item">PPID 1 Orphans: <strong class="tabular text-amber" id="metric-orphans">0</strong></span>
+          </div>
+        </article>
+
+        <!-- Spectral Pressure / Zombie Defunct Count -->
+        <article class="metric-card card-accent">
+          <div class="metric-header">
+            <span class="metric-title">Spectral Pressure Index</span>
+            <span class="metric-badge badge-warning" id="spectral-status-badge">Nominal</span>
+          </div>
+          <div class="metric-hero">
+            <span class="metric-number tabular text-amber" id="metric-spectral-index">0.0</span>
+            <span class="metric-unit">/100</span>
+          </div>
+          <div class="metric-progress-track">
+            <div class="metric-progress-fill fill-spectral" id="spectral-progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="metric-footer">
+            <span class="footer-item">Zombie PIDs: <strong class="tabular text-crimson" id="metric-zombies">0</strong></span>
+            <span class="footer-item">Abandoned RSS: <strong class="tabular" id="metric-residual-ram">0.0 MB</strong></span>
+          </div>
+        </article>
+      </div>
+
+      <!-- Process Graveyard Table Container -->
+      <div class="graveyard-section" id="graveyard">
+        <div class="graveyard-toolbar">
+          <div class="toolbar-title-group">
+            <h2 class="section-heading">Process Table & Residue Strata</h2>
+            <p class="section-subtext">Active execution tasks inspected for orphan status, lingering sockets, and memory leakage.</p>
+          </div>
+
+          <div class="toolbar-filters">
+            <div class="search-box">
+              <input type="search" id="process-search-input" class="search-input" placeholder="Filter by PID or daemon name..." autocomplete="off">
+            </div>
+            <div class="segmented-control" role="tablist">
+              <button class="seg-btn active" data-filter="all" type="button">All (<span id="filter-count-all">0</span>)</button>
+              <button class="seg-btn" data-filter="orphan" type="button">Orphans (<span id="filter-count-orphan">0</span>)</button>
+              <button class="seg-btn" data-filter="specter" type="button">Memory Specters (<span id="filter-count-specter">0</span>)</button>
+              <button class="seg-btn" data-filter="zombie" type="button">Zombies (<span id="filter-count-zombie">0</span>)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Viewport -->
+        <div class="table-container">
+          <table class="necro-table" id="process-table">
+            <thead>
+              <tr>
+                <th class="col-pid">PID</th>
+                <th class="col-ppid">PPID</th>
+                <th class="col-name">Command / Daemon</th>
+                <th class="col-status">Status</th>
+                <th class="col-rss text-right">RSS Memory</th>
+                <th class="col-cpu text-right">CPU</th>
+                <th class="col-archetype">Classified Archetype</th>
+                <th class="col-action text-right">Archaeology Audit</th>
+              </tr>
+            </thead>
+            <tbody id="process-table-body">
+              <tr>
+                <td colspan="8" class="table-empty-row">Inspecting kernel process table...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-legend">
+          <span class="legend-item"><span class="legend-swatch swatch-orphan"></span> Orphan Routine (Severed PPID=1)</span>
+          <span class="legend-item"><span class="legend-swatch swatch-specter"></span> Memory Specter (>300 MB RSS)</span>
+          <span class="legend-item"><span class="legend-swatch swatch-zombie"></span> Zombie Process (Dead struct in task list)</span>
+          <span class="legend-item"><span class="legend-swatch swatch-hung"></span> Hung Daemon (>15% CPU load)</span>
+          <span class="legend-item"><span class="legend-swatch swatch-nominal"></span> Nominal Execution Task</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Pane: Process Necrology & Analytical Synthesis -->
+    <section class="dossier-pane" id="dossier">
+      <div class="dossier-header">
+        <div class="dossier-title-group">
+          <div class="dossier-meta-row">
+            <span class="kicker-label">Forensic Synthesizer</span>
+            <span class="meta-sep">/</span>
+            <span class="dossier-status-badge" id="inference-engine-badge">Deterministic Failover Active</span>
+          </div>
+          <h2 class="dossier-heading">Process Necrology & Autopsy Dossier</h2>
+        </div>
+
+        <div class="dossier-actions">
+          <button class="secondary-btn" id="copy-report-btn" type="button" title="Copy markdown report to clipboard">Copy Dossier</button>
+          <button class="secondary-btn" id="download-report-btn" type="button" title="Export markdown file">Export .MD</button>
+          <button class="secondary-btn" id="clear-report-btn" type="button">Reset</button>
+        </div>
+      </div>
+
+      <!-- Synthesis Tabs: Rendered Report / Raw Markdown / Host Snapshot -->
+      <div class="dossier-tabs-strip">
+        <div class="tab-button-group">
+          <button class="tab-link active" data-tab="rendered" type="button">Post-Mortem Analysis</button>
+          <button class="tab-link" data-tab="raw" type="button">Raw Markdown</button>
+          <button class="tab-link" data-tab="telemetry-json" type="button">Kernel Vitals JSON</button>
+        </div>
+
+        <div class="target-focus-indicator" id="target-focus-container" style="display: none;">
+          <span class="focus-label">Audit Focus:</span>
+          <span class="focus-pid-pill" id="focus-pid-pill">PID 1042</span>
+          <button class="focus-clear-btn" id="clear-focus-btn" type="button" title="Clear target filter">&times;</button>
+        </div>
+      </div>
+
+      <!-- Dossier Viewport Content -->
+      <div class="dossier-content-viewport">
+        <!-- Rendered Tab -->
+        <div class="tab-pane active" id="tab-rendered">
+          <div class="synthesis-loading-overlay" id="synthesis-loading" style="display: none;">
+            <div class="loading-box">
+              <div class="loading-pulse-ring"></div>
+              <h3 class="loading-title">Interrogating Machine Ghosts</h3>
+              <p class="loading-subtext" id="loading-step-text">Tracing uncollected socket descriptors and defunct task structs...</p>
+              <div class="loading-progress-bar">
+                <div class="loading-progress-inner" id="loading-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-dossier-state" id="empty-dossier-state">
+            <div class="empty-icon-frame">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            </div>
+            <h3 class="empty-title">Awaiting Telemetry Archaeological Interrogation</h3>
+            <p class="empty-description">
+              Initiate a deep post-mortem analysis across the active kernel process strata. The local open-weight model (or deterministic systems forensics synthesizer) will analyze orphan PIDs, unreaped exit codes, and memory leak vectors to generate an institutional autopsy.
+            </p>
+            <div class="empty-action-row">
+              <button class="primary-action-btn" id="empty-trigger-btn" type="button">
+                Run Diagnostic Autopsy
+              </button>
+            </div>
+          </div>
+
+          <div class="rendered-markdown-body" id="rendered-report-content" style="display: none;">
+            <!-- Rendered markdown injected here -->
+          </div>
+        </div>
+
+        <!-- Raw Markdown Tab -->
+        <div class="tab-pane" id="tab-raw" style="display: none;">
+          <textarea class="raw-markdown-area" id="raw-markdown-output" readonly placeholder="Raw post-mortem markdown will appear here..."></textarea>
+        </div>
+
+        <!-- Kernel JSON Tab -->
+        <div class="tab-pane" id="tab-telemetry-json" style="display: none;">
+          <pre class="telemetry-json-viewer" id="telemetry-json-output">Kernel telemetry snapshot will be rendered here...</pre>
+        </div>
+      </div>
+
+      <!-- Air-Gap Security & Compliance Box -->
+      <div class="airgap-footer" id="airgap">
+        <div class="airgap-badge-group">
+          <span class="security-shield-icon">🛡️</span>
+          <span class="airgap-title">Zero-Leak Air-Gap Invariant</span>
+        </div>
+        <p class="airgap-text">
+          Zero process table addresses, usernames, or telemetry vectors cross external cloud boundaries. Inference executed strictly through local socket (`localhost:11434`) or local deterministic fallback. Zero commercial API token billing.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Process Inspection Detail Modal / Drawer -->
+  <dialog class="process-dialog" id="process-modal">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <div>
+          <span class="dialog-kicker">Process Forensic Inspection</span>
+          <h3 class="dialog-title" id="modal-process-title">PID 1042 · node_worker_leaked</h3>
+        </div>
+        <button class="dialog-close-btn" id="modal-close-btn" type="button">&times;</button>
+      </div>
+      
+      <div class="dialog-body">
+        <div class="dialog-metrics-grid">
+          <div class="dialog-metric-item">
+            <span class="dm-label">Process ID (PID)</span>
+            <span class="dm-value tabular" id="modal-pid">1042</span>
+          </div>
+          <div class="dialog-metric-item">
+            <span class="dm-label">Parent PID (PPID)</span>
+            <span class="dm-value tabular" id="modal-ppid">1</span>
+          </div>
+          <div class="dialog-metric-item">
+            <span class="dm-label">Resident RSS Memory</span>
+            <span class="dm-value tabular" id="modal-rss">393.2 MB</span>
+          </div>
+          <div class="dialog-metric-item">
+            <span class="dm-label">CPU Share</span>
+            <span class="dm-value tabular" id="modal-cpu">18.4%</span>
+          </div>
+          <div class="dialog-metric-item">
+            <span class="dm-label">Operating Status</span>
+            <span class="dm-value" id="modal-status">sleeping</span>
+          </div>
+          <div class="dialog-metric-item">
+            <span class="dm-label">Archaeology Class</span>
+            <span class="dm-value" id="modal-archetype">Orphan Routine</span>
+          </div>
+        </div>
+
+        <div class="dialog-section">
+          <h4 class="dialog-subtitle">Archeological Pathology & Parentage Trace</h4>
+          <p class="dialog-explanation" id="modal-explanation">
+            This routine has been severed from its parent execution lineage and reparented to PID 1 (Init/Systemd). It retains active memory allocations without active supervision.
+          </p>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button class="secondary-btn" id="modal-cancel-btn" type="button">Dismiss</button>
+        <button class="primary-action-btn" id="modal-exorcise-btn" type="button">
+          Perform Targeted Necrology on this PID
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Notification Toast -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

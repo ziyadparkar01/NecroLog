@@ -1,0 +1,6 @@
+{
+  "name": "NecroLog: Ambient Telemetry & Process Archaeology",
+  "description": "Executive systems monitoring console treating orphan routines, lingering PIDs, and memory overhead as the ghosts in the machine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
